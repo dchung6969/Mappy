@@ -107,6 +107,13 @@ class TiledPlatform extends Phaser.Scene {
         });
         // then add the coins to a group
         this.coinGroup = this.add.group(this.coins);
+        this.bluePowerUps = map.createFromObjects("Objects", {
+            name: "bluePowerUp",
+            key: "kenney_sheet",
+            frame: 513
+        });
+        this.physics.world.enable(this.bluePowerUps, Phaser.Physics.Arcade.STATIC_BODY);
+        this.bluePowerUpGroup = this.add.group(this.bluePowerUps);
 
         // set gravity and physics world bounds (so collideWorldBounds works)
         this.physics.world.gravity.y = 2000;
@@ -117,6 +124,22 @@ class TiledPlatform extends Phaser.Scene {
         this.physics.add.overlap(this.p1, this.coinGroup, (obj1, obj2) => {
             obj2.destroy(); // remove coin on overlap
         });
+        this.powerUpVfxManager = this.add.particles('kenney_sheet', 215);
+
+        this.powerUpVfxEffect = this.powerUpVfxManager.createEmitter({
+            follow: this.p1,
+            quantity: 20,
+            scale: {start: 1.0, end: 0.0},  // start big, end small
+            speed: {min: 50, max: 100}, // speed up
+            lifespan: 800,   // short lifespan
+            on: false   // do not immediately start, will trigger in collision
+        });
+        this.physics.add.overlap(this.p1, this.bluePowerUpGroup, (obj1, obj2) => {
+
+            this.powerUpVfxEffect.explode();  // trigger particle system
+            
+            obj2.destroy(); // remove power up
+        })
 
         // setup camera
         this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
